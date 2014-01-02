@@ -1,0 +1,14 @@
+# Watcom intermediate files
+*.obj
+*.err
+*.map
+*.mk1
+*.lk1
+*.mk
+*.sym
+
+# The target
+*.exe
+
+# Prism db
+pv

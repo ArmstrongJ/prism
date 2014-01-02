@@ -1,0 +1,9 @@
+Prism Versioning
+Copyright 2014 Jeffrey Armstrong <jeff@rainbow-100.com>
+
+Introduction
+============
+
+Prism is a simple versioning system designed to work properly under MS-DOS
+and provide git-like capabilities on a local disk.  It certainly won't be
+nearly as functional, though.
