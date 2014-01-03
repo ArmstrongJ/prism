@@ -13,6 +13,7 @@
 #define PRET_WRITEERROR -5
 #define PRET_UPDATEFAIL -6
 #define PRET_NOTTRACKED -7
+#define PRET_GZFAILED   -8
 
 #define DIR_SEP     "\\"
 

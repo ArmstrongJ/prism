@@ -4,8 +4,8 @@ projectIdent
 VpeMain
 1
 WRect
-5312
-3271
+5888
+3830
 4352
 6144
 2
@@ -30,8 +30,8 @@ VComponent
 WRect
 0
 0
-5717
-4361
+5712
+4352
 0
 0
 9
@@ -39,5 +39,5 @@ WFileName
 9
 prism.tgt
 0
-11
+5
 7

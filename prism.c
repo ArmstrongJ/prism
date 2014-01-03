@@ -21,6 +21,8 @@ static void usage(const char *name)
     printf("\nUsage: %s <command> ...\n\n", name);
     printf("Commands:\n\n");
     printf("\tabout\tprints a banner and exits\n");
+    printf("\tadd\tadds the specified file to the commit queue\n");
+    printf("\tcommit\tcommits currently queued files\n");
     printf("\thash\tdisplays a file's hash\n");
     printf("\tinfo\tshow information about repository\n");
     printf("\tinit\tinitializes this directory for versioning\n");
@@ -75,7 +77,21 @@ struct db_file oldfile;
 
 static void commit_task(const char *message) 
 {
+int fcount;
+int rev;
 
+    printf("Committing queue...\n");
+    fcount = disp_queue();
+    if(fcount <= 0) {
+        printf("  ERR: no files queued\n");
+        return;
+    }
+
+    rev = increment_revision(); 
+    if(commit_queue(rev) == PRET_OK) 
+        printf("  commit completed\n");
+    else
+        printf("  ERR: commit failed\n");
 }
 
 static void info_task()
@@ -128,6 +144,10 @@ int main(int argc, char *argv[])
         banner();
     else if(strcmp(argv[1], "add") == 0 && argc == 3)
         add_task(argv[2]);
+    else if(strcmp(argv[1], "commit") == 0 && argc == 3)
+        commit_task(argv[2]);
+    else if(strcmp(argv[1], "commit") == 0)
+        commit_task(NULL);
     else if(strcmp(argv[1], "init") == 0)
         init_task();
     else if(strcmp(argv[1], "info") == 0)

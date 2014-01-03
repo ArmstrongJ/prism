@@ -23,4 +23,6 @@ int get_db_fileinfo(const char *filename, struct db_file *info);
 
 int disp_queue();
 
+int commit_queue(int revision);
+
 #endif /* _DB_HDRS_ */

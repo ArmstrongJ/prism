@@ -7,3 +7,9 @@ Introduction
 Prism is a simple versioning system designed to work properly under MS-DOS
 and provide git-like capabilities on a local disk.  It certainly won't be
 nearly as functional, though.
+
+Requirements
+============
+
+Other than the C standard library, Prism only requires zLib to be present.
+This library can be easily compiled for MS-DOS, so don't panic.

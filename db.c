@@ -13,6 +13,7 @@
 
 #include "prism.h"
 #include "db.h"
+#include "rfile.h"
 
 #define DB_FILENAME     PDB_DIR DIR_SEP "db.txt"
 #define MSG_FILENAME    PDB_DIR DIR_SEP "message.txt"
@@ -205,9 +206,11 @@ int res;
         
         reader = strchr(line, ' ') + 1; /* Advance to revision */
         reader = strchr(reader, ' ') + 1; /* Advance to hash */
-        reader = strchr(line, ' ') + 1; /* Advance to filename */
+        reader = strchr(reader, ' ') + 1; /* Advance to filename */
         
-#if defined(__DOS__) || defined(__WIN32__)        
+        printf("%s <=> %s\n", filename, reader);
+        
+#if defined(MSDOS) || defined(WIN32)        
         res = strcmpi(filename, reader);
 #else   
         res = strcmpi(filename, reader);
@@ -220,6 +223,8 @@ int res;
             sep = strchr(reader, ' ');
             memset(info->hash, 0, 33);
             memcpy(info->hash, reader, 32);
+            
+            printf("%s\n", info->hash);
             
             break;
         }
@@ -257,6 +262,158 @@ FILE *fp;
         i++;
     }
     fclose(fp);
+    
+    return i;
+}
+
+static int new_file_id()
+{
+char *line;
+FILE *fp;
+int i;
+
+    fp = fopen(DB_FILENAME, "r");
+    if(fp == NULL) 
+        return PRET_READERROR;
+    
+    line = (char *)malloc(512*sizeof(char));
+    if(line == NULL) {
+        fclose(fp);
+        return PRET_ERROR;
+    }
+    
+    i = -1;
+    while(fgets(line, 512, fp) != NULL) i++;
+    
+    fclose(fp);
+    free(line);
+    
+    return i;
+}
+
+static int update_db_newfile(const char *filename, struct db_file *info)
+{
+FILE *fp;
+
+    info->id = new_file_id();
+    if(info->id < 0)
+        return info->id;
+
+    fp = fopen(DB_FILENAME, "a");
+    if(fp == NULL) 
+        return PRET_WRITEERROR;
+    
+    fprintf(fp, "%x %x %s %s\n", info->id, info->revision, info->hash, filename);
+    
+    fclose(fp);
+    
+    return PRET_OK;
+}
+
+static int update_db_file(const char *filename, struct db_file *info)
+{
+FILE *fpdb;
+FILE *tempdb;
+char *line;
+char *reader;
+int check_id;
+
+    fpdb = fopen(DB_FILENAME, "r");
+    if(fpdb == NULL)
+        return PRET_READERROR;
+
+    tempdb = fopen(DB_TEMPNAME, "w");
+    if(tempdb == NULL) {
+        fclose(fpdb);
+        return PRET_WRITEERROR;
+    }
+
+    line = (char *)malloc(512*sizeof(char));
+    if(line == NULL) {
+        fclose(fpdb);
+        fclose(tempdb);
+        return PRET_ERROR;
+    }
+
+    /* Revision line */
+    fgets(line, 512, fpdb);
+    fprintf(tempdb, line);
+    
+    while(fgets(line, 512, fpdb) != NULL) {
+        check_id = strtol(line,&reader,16);
+        if(check_id == info->id) 
+            fprintf(tempdb, "%x %x %s %s\n", info->id, info->revision, info->hash, filename);
+        else 
+            fprintf(tempdb, line);
+    }
+
+    fclose(fpdb);
+    fclose(tempdb);
+    
+    temp_to_permanent();
+    
+    free(line);
+    
+    return PRET_OK;
+}
+
+static int update_db_info(const char *filename, struct db_file *info)
+{
+    if(info->id < 0)
+        return update_db_newfile(filename, info);
+    else
+        return update_db_file(filename, info);
+}
+
+int commit_queue(int revision)
+{
+int res;
+FILE *fpq;
+char *line;
+char *tmp;
+struct db_file info;
+char newhash[33];
+
+    fpq = fopen(Q_FILENAME, "r");
+    if(fpq == NULL) 
+        return PRET_READERROR;
+    
+    line = (char *)malloc(512*sizeof(char));
+    if(line == NULL) {
+        fclose(fpq);
+        return PRET_ERROR;
+    }
+    
+    while(fgets(line, 512, fpq) != NULL) {
+        tmp = strchr(line, '\r');
+        if(tmp == NULL) tmp = strchr(line, '\n');
+        if(tmp != NULL) tmp[0] = '\0';
+        if(strlen(line) == 0) continue;
+        
+        info.id = -1;
+        res = get_db_fileinfo(line, &info);
+        info.revision = revision;
+        
+        res = get_file_hash(line, newhash);
+        if(info.id >= 0 && strcmp(newhash, info.hash) == 0)
+            continue;
+        
+        memcpy(info.hash, newhash, 33);
+        
+        res = update_db_info(line, &info);
+        if(res != PRET_OK)
+            printf("  ERR: could not update file %s\n", line);
+        else {
+            res = compress_file(line, info.id, revision);
+            if(res != PRET_OK)
+                printf("  ERR: could not compress/store file %s\n", line);
+        }
+    }
+    
+    fclose(fpq);
+    
+    /* When complete, delete the queue */
+    unlink(Q_FILENAME);
     
     return PRET_OK;
 }

@@ -5,6 +5,7 @@
 #include "prism.h"
 #include "md5.h"
 #include "rfile.h"
+#include "compress.h"
 
 static const char hex_str[]= "0123456789abcdef";
 
@@ -23,8 +24,8 @@ int i;
         return PRET_READERROR;
     
     MD5_Init(&hb);
-    while(fgets(buf, 15, fp)) {
-        MD5_Update(&hb, buf, strlen(buf));
+    while((i = fread(buf, sizeof(char), 15, fp)) > 0) {
+        MD5_Update(&hb, buf, i);
     }
     fclose(fp);
     
@@ -37,3 +38,19 @@ int i;
     
     return PRET_OK;
 }    
+
+int compress_file(const char *filename, int id, int revision)
+{
+char *newfile;
+
+    /* Arbitrary size... */
+    newfile = (char *)malloc(128*sizeof(char));
+    if(newfile == NULL)
+        return PRET_ERROR;
+    snprintf(newfile, 128, "%s%s%x.%x", PDB_DIR, DIR_SEP, id, revision);
+    
+    if(file_compress(filename, newfile) >= 0)
+        return PRET_OK;
+    
+    return PRET_GZFAILED;
+}
