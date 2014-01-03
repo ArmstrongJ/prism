@@ -4,17 +4,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys\types.h>
 #include <sys\stat.h>
 #include <direct.h>
 #include <errno.h>
 #include <io.h>
 
-
 #include "prism.h"
+#include "db.h"
 
 #define DB_FILENAME     PDB_DIR DIR_SEP "db.txt"
 #define MSG_FILENAME    PDB_DIR DIR_SEP "message.txt"
+#define Q_FILENAME      PDB_DIR DIR_SEP "queue.txt"
 
 #define DB_TEMPNAME     PDB_DIR DIR_SEP "db.tmp"
 
@@ -157,7 +159,104 @@ char *line;
 
 int add_file(const char *filename)
 {
-int rev;
+FILE *fp;
+       
+    if(filename == NULL)
+        return PRET_ERROR;
+    
+    fp = fopen(Q_FILENAME, "a");
+    if(fp == NULL)
+        return PRET_WRITEERROR;
+    
+    fprintf(fp,"%s\n",filename);
+    fclose(fp);
+    
+    return PRET_OK;
+}
+
+int get_db_fileinfo(const char *filename, struct db_file *info)
+{
+char *line;
+FILE *fpdb;
+char *reader;
+char *sep;
+int res;
+
+    if(filename == NULL || info == NULL)
+        return PRET_ERROR;
+        
+    fpdb = fopen(DB_FILENAME, "r");
+    if(fpdb == NULL)
+        return PRET_READERROR;
+
+    line = (char *)malloc(512*sizeof(char));
+    if(line == NULL) {
+        fclose(fpdb);
+        return PRET_ERROR;
+    }
+    
+    info->id = -1;
+
+    fgets(line, 512, fpdb);    
+    while(fgets(line, 512, fpdb) != NULL) {
+        reader = strrchr(line, '\r');
+        if(reader == NULL) reader = strrchr(line, '\n');
+        if(reader != NULL) reader[0] = '\0';
+        
+        reader = strchr(line, ' ') + 1; /* Advance to revision */
+        reader = strchr(reader, ' ') + 1; /* Advance to hash */
+        reader = strchr(line, ' ') + 1; /* Advance to filename */
+        
+#if defined(__DOS__) || defined(__WIN32__)        
+        res = strcmpi(filename, reader);
+#else   
+        res = strcmpi(filename, reader);
+#endif
+        if(res == 0) {
+            info->id = strtol(line,&reader,16);
+            info->revision = strtol(reader,&reader,16);
+            
+            reader++;
+            sep = strchr(reader, ' ');
+            memset(info->hash, 0, 33);
+            memcpy(info->hash, reader, 32);
+            
+            break;
+        }
+    }
+    
+    fclose(fpdb);
+
+    if(info->id >= 0)
+        return PRET_OK;
+    else
+        return PRET_NOTTRACKED;
+}
+
+int disp_queue()
+{
+int i;
+char *line;
+FILE *fp;
+
+    fp = fopen(Q_FILENAME, "r");
+    if(fp == NULL) 
+        return PRET_READERROR;
+    
+    line = (char *)malloc(512*sizeof(char));
+    if(line == NULL) {
+        fclose(fp);
+        return PRET_ERROR;
+    }
+    
+    i = 0;
+    while(fgets(line, 512, fp) != NULL) {
+        if(i == 0)
+            printf("  currently queued files:\n");
+        printf("    %s", line);
+        i++;
+    }
+    fclose(fp);
     
     return PRET_OK;
 }

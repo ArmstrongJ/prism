@@ -13,21 +13,18 @@
 char *alloc_and_combine_paths(char *p1, char *p2)
 {
 int l1, l2;
-char *ret, *two;
+char *ret;
 
     if(p1 == NULL || p2 == NULL) return NULL;
     
     l1 = strlen(p1); l2 = strlen(p2);
     
-    ret = (char *)malloc((l1+l2+2)*sizeof(char));
+    ret = (char *)malloc((l1+l2+strlen(DIR_SEP))*sizeof(char));
     if(ret == NULL) return ret;
     
     ret[0] = '\0';
     strcat(ret, p1);
-    two = ret + l1;
-    two[0] = DIR_SEP;
-    two[1] = '\0';
-    two = NULL;
+    strcat(ret, DIR_SEP);
     strcat(ret, p2);
     
     return ret;
