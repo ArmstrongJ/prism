@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <io.h>
 
 #include "prism.h"
 #include "md5.h"
@@ -50,6 +51,24 @@ char *newfile;
     snprintf(newfile, 128, "%s%s%x.%x", PDB_DIR, DIR_SEP, id, revision);
     
     if(file_compress(filename, newfile) >= 0)
+        return PRET_OK;
+    
+    return PRET_GZFAILED;
+}
+
+int decompress_file(const char *destination, int id, int revision)
+{
+char *stored_name;
+
+    /* Arbitrary size... */
+    stored_name = (char *)malloc(128*sizeof(char));
+    if(stored_name == NULL)
+        return PRET_ERROR;
+    snprintf(stored_name, 128, "%s%s%x.%x", PDB_DIR, DIR_SEP, id, revision);
+    
+    unlink(destination);
+    
+    if(file_uncompress(stored_name, destination) >= 0)
         return PRET_OK;
     
     return PRET_GZFAILED;

@@ -26,6 +26,8 @@ static void usage(const char *name)
     printf("\thash\tdisplays a file's hash\n");
     printf("\tinfo\tshow information about repository\n");
     printf("\tinit\tinitializes this directory for versioning\n");
+    printf("\trevert\treverts the specified file to the last revision\n");
+    printf("\n");
 }
     
 static void init_task()
@@ -133,6 +135,27 @@ char hash[33];
         printf("  ERR: hash failed\n");
 }
 
+static void revert_task(const char *filename)
+{
+int res;
+
+    printf("Reverting changes to %s...\n", filename);
+    res = revert(filename, -1);
+    switch(res) { 
+        case PRET_OK:
+            printf("  changes reverted\n");
+            break;
+        case PRET_GZFAILED:
+            printf("  ERR: decompression failure\n");
+            break;
+        case PRET_NOREVISION:
+            printf("  ERR: no applicable revision found\n");
+            break;
+        default:
+            printf("  ERR: revert failed\n");
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if(argc == 1) {
@@ -154,8 +177,12 @@ int main(int argc, char *argv[])
         info_task();
     else if(strcmp(argv[1], "hash") == 0 && argc == 3)
         hash_task(argv[2]);
+    else if(strcmp(argv[1], "revert") == 0 && argc == 3)
+        revert_task(argv[2]);
     else
         printf("Error processing command...\n");
+
+    printf("\n");
 
     return 0;
 }

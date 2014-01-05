@@ -208,8 +208,6 @@ int res;
         reader = strchr(reader, ' ') + 1; /* Advance to hash */
         reader = strchr(reader, ' ') + 1; /* Advance to filename */
         
-        printf("%s <=> %s\n", filename, reader);
-        
 #if defined(MSDOS) || defined(WIN32)        
         res = strcmpi(filename, reader);
 #else   
@@ -223,8 +221,6 @@ int res;
             sep = strchr(reader, ' ');
             memset(info->hash, 0, 33);
             memcpy(info->hash, reader, 32);
-            
-            printf("%s\n", info->hash);
             
             break;
         }
@@ -416,4 +412,54 @@ char newhash[33];
     unlink(Q_FILENAME);
     
     return PRET_OK;
+}
+
+static int determine_revision(struct db_file *info, int desired_revision)
+{
+char *fname;
+int fnamelength;
+struct stat fileres;
+int res, i;
+    
+    if(desired_revision > info->revision)
+        return info->revision;
+    
+    fnamelength = strlen(PDB_DIR) + strlen(DIR_SEP) + 32;
+    fname = (char *)malloc(fnamelength*sizeof(char));
+    if(fname == NULL)
+        return PRET_ERROR;
+    
+    i = desired_revision+1;
+    do {
+        i--;
+        snprintf(fname, fnamelength, "%s%s%x.%x", PDB_DIR, DIR_SEP, info->id, i);
+        res = stat(fname, &fileres);
+    } while(res != 0 && i > 0);
+    
+    if(res == 0)
+        return i;
+        
+    return PRET_NOTTRACKED;
+}
+
+int revert(const char *filename, int revision)
+{
+int target_revision;
+struct db_file info;
+int res;
+
+
+    res = get_db_fileinfo(filename, &info);
+    if(res != PRET_OK) 
+        return res;
+        
+    if(revision < 0)
+        target_revision = info.revision;
+    else {
+        target_revision = determine_revision(&info, revision);
+        if(target_revision < 0)
+            return PRET_NOREVISION;
+    }
+    
+    return decompress_file(filename, info.id, target_revision);
 }

@@ -14,6 +14,7 @@
 #define PRET_UPDATEFAIL -6
 #define PRET_NOTTRACKED -7
 #define PRET_GZFAILED   -8
+#define PRET_NOREVISION -10
 
 #define DIR_SEP     "\\"
 
