@@ -463,3 +463,25 @@ int res;
     
     return decompress_file(filename, info.id, target_revision);
 }
+
+int diff_db_file(const char *filename, int revision)
+{
+int target_revision;
+struct db_file info;
+int res;
+
+    res = get_db_fileinfo(filename, &info);
+    if(res != PRET_OK) 
+        return res;
+        
+    if(revision < 0)
+        target_revision = info.revision;
+    else {
+        target_revision = determine_revision(&info, revision);
+        if(target_revision < 0)
+            return PRET_NOREVISION;
+    }
+    
+    return diff_file(filename, info.id, target_revision);
+}
+

@@ -7,4 +7,6 @@ int compress_file(const char *filename, int id, int revision);
 
 int decompress_file(const char *destination, int id, int revision);
 
+int diff_file(const char *working, int id, int revision);
+
 #endif /* _RFILE_HDR_ */

@@ -1,3 +1,7 @@
+/* Prism Versioning
+ * Copyright 2014 Jeffrey Armstrong <jeff@rainbow-100.com>
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,8 +11,18 @@
 #include "md5.h"
 #include "rfile.h"
 #include "compress.h"
+#include "fcomp.h"
 
 static const char hex_str[]= "0123456789abcdef";
+
+int get_archive_name(char *filename, int maxfile, int id, int revision)
+{
+    if(filename == NULL)
+        return PRET_ERROR;
+       
+    snprintf(filename, maxfile, "%s%s%x.%x", PDB_DIR, DIR_SEP, id, revision);
+    return strlen(filename);
+}
 
 int get_file_hash(const char *filename, char *hash)
 {
@@ -48,7 +62,7 @@ char *newfile;
     newfile = (char *)malloc(128*sizeof(char));
     if(newfile == NULL)
         return PRET_ERROR;
-    snprintf(newfile, 128, "%s%s%x.%x", PDB_DIR, DIR_SEP, id, revision);
+    get_archive_name(newfile, 128, id, revision);
     
     if(file_compress(filename, newfile) >= 0)
         return PRET_OK;
@@ -64,7 +78,7 @@ char *stored_name;
     stored_name = (char *)malloc(128*sizeof(char));
     if(stored_name == NULL)
         return PRET_ERROR;
-    snprintf(stored_name, 128, "%s%s%x.%x", PDB_DIR, DIR_SEP, id, revision);
+    get_archive_name(stored_name, 128, id, revision);
     
     unlink(destination);
     
@@ -72,4 +86,43 @@ char *stored_name;
         return PRET_OK;
     
     return PRET_GZFAILED;
+}
+
+int diff_file(const char *working, int id, int revision)
+{
+int res;
+int namelength;
+char *rev_name;
+char *extension;
+    
+    if(working == NULL) return PRET_ERROR;
+    namelength = strlen(working)+strlen(PDB_DIR)+strlen(DIR_SEP)+16;
+    rev_name = (char *)malloc(namelength*sizeof(char));
+    if(rev_name == NULL)
+        return PRET_ERROR;
+    
+    snprintf(rev_name, namelength, "%s%s%s", PDB_DIR, DIR_SEP, working);
+    extension = strrchr(rev_name, '.');
+    if(extension != NULL) extension[0] = '\0';
+
+#if defined(MSDOS) || defined(WIN32)    
+    snprintf(rev_name, namelength, "%s.%.3x", rev_name, revision);
+#else
+    snprintf(rev_name, namelength, "%s.%x", rev_name, revision);
+#endif
+    
+    /* Decompress the archived version to a temporary file */
+    res = decompress_file(rev_name, id, revision);
+    if(res != PRET_OK) {
+        free(rev_name);
+        return res;
+    }
+    
+    /* Perform the comparison */
+    res = compare_files(rev_name, working);
+    
+    unlink(rev_name);
+    free(rev_name);
+    
+    return res;
 }

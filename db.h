@@ -27,4 +27,6 @@ int commit_queue(int revision);
 
 int revert(const char *filename, int revision);
 
+int diff_db_file(const char *filename, int revision);
+
 #endif /* _DB_HDRS_ */

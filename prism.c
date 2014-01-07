@@ -156,6 +156,27 @@ int res;
     }
 }
 
+static void diff_task(const char *filename)
+{
+int res;
+
+    printf("Comparing current %s to latest repository revision...\n", filename);
+    res = diff_db_file(filename, -1);
+    switch(res) { 
+        case PRET_OK:
+            printf("  diff complete\n");
+            break;
+        case PRET_GZFAILED:
+            printf("  ERR: decompression failure\n");
+            break;
+        case PRET_NOREVISION:
+            printf("  ERR: no applicable revision found\n");
+            break;
+        default:
+            printf("  ERR: diff failed\n");
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if(argc == 1) {
@@ -179,8 +200,12 @@ int main(int argc, char *argv[])
         hash_task(argv[2]);
     else if(strcmp(argv[1], "revert") == 0 && argc == 3)
         revert_task(argv[2]);
-    else
-        printf("Error processing command...\n");
+    else if(strcmp(argv[1], "diff") == 0 && argc == 3)
+        diff_task(argv[2]);
+    else {
+        usage(argv[0]);
+        printf("Error processing command...\n\n");
+    }
 
     printf("\n");
 
