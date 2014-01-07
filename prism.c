@@ -22,7 +22,9 @@ static void usage(const char *name)
     printf("Commands:\n\n");
     printf("\tabout\tprints a banner and exits\n");
     printf("\tadd\tadds the specified file to the commit queue\n");
+    printf("\tclear\tclears the commit queue\n");
     printf("\tcommit\tcommits currently queued files\n");
+    printf("\tdiff\tcompares a working copy versus repository\n");
     printf("\thash\tdisplays a file's hash\n");
     printf("\tinfo\tshow information about repository\n");
     printf("\tinit\tinitializes this directory for versioning\n");
@@ -177,6 +179,18 @@ int res;
     }
 }
 
+static void clear_task()
+{
+    printf("Clearing the commit queue...\n");
+    switch(clear_entire_queue()) {
+        case PRET_OK:
+            printf("  commit queue is now clear\n");
+            break;
+        default:
+            printf("  ERR: clear failed\n");
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if(argc == 1) {
@@ -202,6 +216,8 @@ int main(int argc, char *argv[])
         revert_task(argv[2]);
     else if(strcmp(argv[1], "diff") == 0 && argc == 3)
         diff_task(argv[2]);
+    else if(strcmp(argv[1], "clear") == 0)
+        clear_task();
     else {
         usage(argv[0]);
         printf("Error processing command...\n\n");

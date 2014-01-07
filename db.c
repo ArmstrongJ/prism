@@ -485,3 +485,8 @@ int res;
     return diff_file(filename, info.id, target_revision);
 }
 
+int clear_entire_queue()
+{
+    unlink(Q_FILENAME);
+    return PRET_OK;
+}

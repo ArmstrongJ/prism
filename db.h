@@ -29,4 +29,6 @@ int revert(const char *filename, int revision);
 
 int diff_db_file(const char *filename, int revision);
 
+int clear_entire_queue();
+
 #endif /* _DB_HDRS_ */
