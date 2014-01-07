@@ -10,6 +10,9 @@
 #include "db.h"
 #include "rfile.h"
 
+static char *message_option;
+static int revision_option;
+
 static void banner()
 {
     printf("Prism Versioning\nRelease %s\nBy Jeff Armstrong <jeff@rainbow-100.com>\n",VERSION);
@@ -92,9 +95,11 @@ int rev;
     }
 
     rev = increment_revision(); 
-    if(commit_queue(rev) == PRET_OK) 
+    if(commit_queue(rev) == PRET_OK) {
         printf("  commit completed\n");
-    else
+        if(message != NULL)
+            save_commit_message(message, rev);
+    } else
         printf("  ERR: commit failed\n");
 }
 
@@ -193,19 +198,47 @@ static void clear_task()
 
 int main(int argc, char *argv[])
 {
+int i,j;
+char *rtext;
+
     if(argc == 1) {
         usage(argv[0]);
         return 0;
     }
+
+    message_option = NULL; 
+    rtext = NULL;
+    revision_option = -1;
+
+    for(i = 1; i < argc; i++) {
+        if(argv[i][0] == '-') {
+            switch(argv[i][1]) {
+                case 'm':
+                    message_option = argv[i+1];
+                    break;
+                case 'r':
+                    rtext = argv[i+1];
+                    break;
+                default:
+                    banner();
+                    printf("Unknown option encountered: %s\n", argv[i]);
+                    return 0;
+            }
+            for(j=i+2; j<argc;j++)
+                argv[j-2] = argv[j];
+            argc -= 2;
+        }
+    }
+    
+    if(rtext != NULL)
+        revision_option = atoi(rtext);
     
     if(strcmp(argv[1], "about") == 0)
         banner();
     else if(strcmp(argv[1], "add") == 0 && argc == 3)
         add_task(argv[2]);
-    else if(strcmp(argv[1], "commit") == 0 && argc == 3)
-        commit_task(argv[2]);
     else if(strcmp(argv[1], "commit") == 0)
-        commit_task(NULL);
+        commit_task(message_option);
     else if(strcmp(argv[1], "init") == 0)
         init_task();
     else if(strcmp(argv[1], "info") == 0)

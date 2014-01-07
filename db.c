@@ -490,3 +490,17 @@ int clear_entire_queue()
     unlink(Q_FILENAME);
     return PRET_OK;
 }
+
+int save_commit_message(const char *message, int revision)
+{
+FILE *fpmsg;
+
+    fpmsg = fopen(MSG_FILENAME, "a");
+    if(fpmsg == NULL)
+        return PRET_WRITEERROR;
+        
+    fprintf(fpmsg, "%d\t%s\n", revision, message);
+    fclose(fpmsg);
+    
+    return PRET_OK;
+}

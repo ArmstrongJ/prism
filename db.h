@@ -31,4 +31,6 @@ int diff_db_file(const char *filename, int revision);
 
 int clear_entire_queue();
 
+int save_commit_message(const char *message, int revision);
+
 #endif /* _DB_HDRS_ */
