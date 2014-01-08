@@ -146,8 +146,13 @@ static void revert_task(const char *filename)
 {
 int res;
 
-    printf("Reverting changes to %s...\n", filename);
-    res = revert(filename, -1);
+    if(revision_option == -1)
+        printf("Reverting changes to %s...\n", filename);
+    else
+        printf("Reverting %s to revision %d...\n", filename, revision_option);
+    
+    res = revert(filename, revision_option);
+    
     switch(res) { 
         case PRET_OK:
             printf("  changes reverted\n");
@@ -167,8 +172,13 @@ static void diff_task(const char *filename)
 {
 int res;
 
-    printf("Comparing current %s to latest repository revision...\n", filename);
-    res = diff_db_file(filename, -1);
+    printf("Comparing current %s to ",filename);
+    if(revision_option == -1)
+        printf("latest repository revision...\n");
+    else
+        printf("revision %d...\n", revision_option);
+    
+    res = diff_db_file(filename, revision_option);
     switch(res) { 
         case PRET_OK:
             printf("  diff complete\n");
