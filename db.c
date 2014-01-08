@@ -219,8 +219,8 @@ int res;
             
             reader++;
             sep = strchr(reader, ' ');
-            memset(info->hash, 0, 33);
-            memcpy(info->hash, reader, 32);
+            memset(info->hash, 0, HASH_BYTES);
+            memcpy(info->hash, reader, HASH_BYTES-1);
             
             break;
         }
@@ -368,7 +368,7 @@ FILE *fpq;
 char *line;
 char *tmp;
 struct db_file info;
-char newhash[33];
+char newhash[HASH_BYTES];
 
     fpq = fopen(Q_FILENAME, "r");
     if(fpq == NULL) 

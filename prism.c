@@ -56,7 +56,7 @@ static void init_task()
 
 static void add_task(const char *filename)
 {
-char new_hash[33];
+char new_hash[HASH_BYTES];
 int res;
 struct db_file oldfile;
 
@@ -130,9 +130,9 @@ int res;
 static void hash_task(const char *filename)
 {
 int res;
-char hash[33];
+char hash[HASH_BYTES];
     
-    memset(hash, 0, 33);
+    memset(hash, 0, HASH_BYTES);
     
     printf("Computing hash for %s...\n", filename);
     res = get_file_hash(filename, hash);

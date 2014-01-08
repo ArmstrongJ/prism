@@ -46,6 +46,8 @@ int i;
     
     MD5_Final(buf, &hb);
     
+    memset(hash, 0, HASH_BYTES);
+    
     for(i=0; i<16; i++) {
         hash[2*i] = hex_str[buf[i] >> 4];
         hash[2*i+1] = hex_str[buf[i] & 0x0F];

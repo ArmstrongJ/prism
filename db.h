@@ -1,10 +1,12 @@
 #ifndef _DB_HDRS_
 #define _DB_HDRS_
 
+#include "rfile.h"
+
 struct db_file {
     int id;
     int revision;
-    char hash[33];
+    char hash[HASH_BYTES];
 };
 
 int initdb();
