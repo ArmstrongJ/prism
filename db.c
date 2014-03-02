@@ -5,11 +5,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys\types.h>
-#include <sys\stat.h>
-#include <direct.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <errno.h>
+
+#ifdef __GNUC__
+#define MKDIR(x)	mkdir(x, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)
+#else
+#include <direct.h>
 #include <io.h>
+#define MKDIR(x)	mkdir(x)
+#endif
 
 #include "prism.h"
 #include "db.h"
@@ -47,7 +53,7 @@ int initdb()
 FILE *fpdb;
 FILE *fpmsg;
 
-    if(mkdir(PDB_DIR) != 0) {
+    if(MKDIR(PDB_DIR) != 0) {
         if(errno == EEXIST)
             return PRET_EXISTS;
         else if(errno == EACCES)
@@ -211,7 +217,7 @@ int res;
 #if defined(MSDOS) || defined(WIN32)        
         res = strcmpi(filename, reader);
 #else   
-        res = strcmpi(filename, reader);
+        res = strcmp(filename, reader);
 #endif
         if(res == 0) {
             info->id = strtol(line,&reader,16);

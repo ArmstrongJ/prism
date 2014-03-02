@@ -60,8 +60,9 @@ int lines = 0;
     buf = (char *)malloc(256*sizeof(char));
     if(buf == NULL)
         return PRET_ERROR;
-
-    while(fgets(buf,100,fp) != NULL) 
+    memset(buf, 0, 256);
+    
+    while(fgets(buf,255,fp) != NULL) 
     {
         if (lines >= MAXLINES) {
             fatal("file is to large for diff");
@@ -174,12 +175,14 @@ int compare_files(const char *fname1, const char *fname2)
    m = in_file(fname1,A);
    n = in_file(fname2,B);
 
-   for (row=0 ; row<m && row < n && strcmp(A[row],B[row]) == 0 ; ++row)
-      ;
+   for(row=0; row < m && row < n && strcmp(A[row],B[row]) == 0; ++row);
+   
    last_d[ORIGIN] = row;
    script[ORIGIN] = NULL;
+   
    lower = (row == m) ? ORIGIN + 1 : ORIGIN - 1;
    upper = (row == n) ? ORIGIN - 1 : ORIGIN + 1;
+   
    if (lower > upper) 
    {
       printf("  the files are identical\n");
@@ -237,4 +240,3 @@ int compare_files(const char *fname1, const char *fname2)
    exceed(d);
    return PRET_ERROR;
 }
-

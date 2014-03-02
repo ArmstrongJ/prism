@@ -4,9 +4,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys\types.h>
-#include <direct.h>
+#include <sys/types.h>
 #include <string.h>
+
+#ifndef __GNUC__
+#include <direct.h>
+#endif
 
 #include "prism.h"
 
