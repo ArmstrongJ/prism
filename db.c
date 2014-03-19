@@ -214,7 +214,7 @@ int res;
         reader = strchr(reader, ' ') + 1; /* Advance to hash */
         reader = strchr(reader, ' ') + 1; /* Advance to filename */
         
-#if defined(MSDOS) || defined(WIN32)        
+#if defined(MSDOS) || defined(WIN32) || defined(atarist)      
         res = strcmpi(filename, reader);
 #else   
         res = strcmp(filename, reader);

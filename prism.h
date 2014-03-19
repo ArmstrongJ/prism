@@ -16,6 +16,19 @@
 #define PRET_GZFAILED   -8
 #define PRET_NOREVISION -10
 
+#if defined(MSDOS) || defined(WIN32) || defined(atarist)
 #define DIR_SEP     "\\"
+
+#elif defined(__unix) || defined(__linux) || defined(unix)
+#define DIR_SEP     "/"
+
+#elif defined(__riscos) || defined(__riscos__) || defined(vms)
+#define DIR_SEP     "."
+
+#else
+#define DIR_SEP     "/"
+#warning "Making assumptions about directory separator '/'"
+
+#endif
 
 #endif /* _PRISM_HDRS_ */
